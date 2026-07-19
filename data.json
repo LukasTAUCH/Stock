@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "categorie": "Lego",
+      "sousCategorie": "Ninjago",
+      "nom": "Kai",
+      "identifiant": "892511",
+      "quantite": 40,
+      "vendu": 1,
+      "photo": ""
+    },
+    {
+      "categorie": "Lego",
+      "sousCategorie": "Ninjago",
+      "nom": "Jay",
+      "identifiant": "892512",
+      "quantite": 25,
+      "vendu": 3,
+      "photo": ""
+    },
+    {
+      "categorie": "Lego",
+      "sousCategorie": "City",
+      "nom": "Caserne de pompiers",
+      "identifiant": "770210",
+      "quantite": 12,
+      "vendu": 10,
+      "photo": ""
+    }
+  ],
+  "_updated": "2026-07-19T00:00:00.000Z"
+}
