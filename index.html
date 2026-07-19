@@ -119,6 +119,7 @@ select.cell-input{cursor:pointer;-webkit-appearance:none;appearance:none;backgro
       <div class="header-sub">Gestion de stock · dernière maj : <span id="updated">—</span></div>
     </div>
     <div class="header-actions">
+      <button class="btn" onclick="reload()" id="btn-reload">⟳ Recharger</button>
       <button class="btn blue" onclick="openImport()">↧ Importer JSON</button>
       <button class="btn accent" onclick="openExport()">↥ Exporter JSON</button>
     </div>
@@ -219,22 +220,49 @@ const DEFAULT_DATA = {
 
 let state = { items: [], updated: null };
 let sortKey = null, sortDir = 1;
+let dirty = false;   // true = modifs non exportées en mémoire
 
 /* ============ CHARGEMENT ============ */
 // Essaie de charger data.json à côté du HTML (utile quand hébergé sur Git/Pages).
 // En cas d'échec (fichier local, pas de serveur), utilise les données par défaut.
 async function boot(){
   try{
-    const res = await fetch('data.json', {cache:'no-store'});
+    const res = await fetch('data.json?_=' + Date.now(), {cache:'no-store'});
     if(res.ok){
       const j = await res.json();
       loadData(j);
+      dirty = false;
       toast('data.json chargé', 'ok');
       return;
     }
     throw new Error('no file');
   }catch(e){
     loadData(DEFAULT_DATA);
+  }
+}
+
+// Recharge data.json depuis GitHub sans recharger toute la page.
+// Le "?_=timestamp" évite que le navigateur serve une version en cache
+// (indispensable juste après un commit).
+async function reload(){
+  if(dirty && !confirm('Tu as des modifications non exportées. Recharger va les écraser avec la version GitHub. Continuer ?')){
+    return;
+  }
+  const btn = document.getElementById('btn-reload');
+  const old = btn.textContent;
+  btn.textContent = '⟳ …'; btn.disabled = true;
+  try{
+    const res = await fetch('data.json?_=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const j = await res.json();
+    if(!Array.isArray(j.items)) throw new Error('format invalide');
+    loadData(j);
+    dirty = false;
+    toast('Rechargé depuis GitHub (' + j.items.length + ' lignes)', 'ok');
+  }catch(e){
+    toast('Échec du rechargement : ' + e.message, 'err');
+  }finally{
+    btn.textContent = old; btn.disabled = false;
   }
 }
 
@@ -426,7 +454,7 @@ function delRow(idx){
   toast('Ligne supprimée');
 }
 
-function touch(){ state.updated = new Date().toISOString(); updateStamp(); }
+function touch(){ state.updated = new Date().toISOString(); dirty = true; updateStamp(); }
 
 /* ============ TRI (clic entête) ============ */
 document.querySelectorAll('th[data-sort]').forEach(th=>{
@@ -471,13 +499,14 @@ function openExport(){
 }
 function copyExport(){
   const t = document.getElementById('export-txt');
-  t.select(); navigator.clipboard.writeText(t.value).then(()=>toast('JSON copié','ok'),()=>toast('Copie impossible','err'));
+  t.select(); navigator.clipboard.writeText(t.value).then(()=>{ dirty=false; toast('JSON copié','ok'); },()=>toast('Copie impossible','err'));
 }
 function downloadJSON(){
   const blob = new Blob([buildJSON()],{type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download='data.json'; a.click();
   URL.revokeObjectURL(a.href);
+  dirty=false;
   toast('data.json téléchargé','ok');
 }
 function openImport(){
@@ -524,6 +553,11 @@ function toast(msg,type=''){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
 }
+
+// Avertissement natif du navigateur si on quitte/rafraîchit avec des modifs non exportées.
+window.addEventListener('beforeunload', (e)=>{
+  if(dirty){ e.preventDefault(); e.returnValue = ''; }
+});
 
 boot();
 </script>
