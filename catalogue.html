@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon Catalogue — Gestion de Stock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0f1e;--surface:#111827;--surface2:#1a2235;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);--accent:#e8c840;--green:#22c55e;--green-bg:rgba(34,197,94,0.12);--orange:#f97316;--orange-bg:rgba(249,115,22,0.12);--red:#ef4444;--red-bg:rgba(239,68,68,0.12);--blue:#60a5fa;--blue-bg:rgba(96,165,250,0.12);--purple:#a855f7;--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--radius:10px;--radius-lg:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;font-size:15px}
+h1,h2,.cond{font-family:'Barlow Condensed',sans-serif}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#0a0f1e 0%,#1a1040 50%,#0a1a0f 100%);border-bottom:1px solid var(--border2);padding:1rem 1.25rem}
+.header-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.header-title{font-size:clamp(20px,5vw,28px);font-weight:900;line-height:1;font-family:'Barlow Condensed',sans-serif}
+.header-title span{color:var(--accent)}
+.header-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.stat{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;text-align:center}
+.stat-n{font-size:22px;font-weight:900;font-family:'Barlow Condensed',sans-serif;line-height:1}
+.stat-l{font-size:10px;color:var(--text2);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.stat.green .stat-n{color:var(--green)}.stat.orange .stat-n{color:var(--orange)}.stat.red .stat-n{color:var(--red)}.stat.blue .stat-n{color:var(--blue)}.stat.accent .stat-n{color:var(--accent)}
+
+/* BUTTONS */
+.btn{padding:8px 14px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;text-transform:uppercase;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3)}
+.btn.accent{background:var(--accent);color:#1a1200;border-color:var(--accent)}
+.btn.accent:hover{filter:brightness(1.1)}
+.btn.green{background:var(--green-bg);border-color:rgba(34,197,94,0.4);color:var(--green)}
+.btn.blue{background:var(--blue-bg);border-color:rgba(96,165,250,0.4);color:var(--blue)}
+.btn.sm{padding:5px 9px;font-size:11px}
+.btn.danger{background:var(--red-bg);border-color:rgba(239,68,68,0.4);color:var(--red)}
+
+/* CONTENT */
+.content{padding:1rem 1.25rem;max-width:1400px;margin:0 auto}
+
+/* FILTERS */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.filters input,.filters select{padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:'Barlow',sans-serif;outline:none}
+.filters input:focus,.filters select:focus{border-color:var(--border2)}
+.filters input::placeholder{color:var(--text3)}
+.filters .search{flex:1;min-width:180px}
+.filter-count{font-size:12px;color:var(--text2);margin-left:auto}
+
+/* TABLE */
+.table-wrap{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:auto;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:900px}
+thead th{background:var(--surface2);color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:12px;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border2);position:sticky;top:0;z-index:5;cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{color:var(--text)}
+thead th .arrow{opacity:.4;font-size:10px;margin-left:3px}
+thead th.sorted .arrow{opacity:1;color:var(--accent)}
+tbody td{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:hover{background:rgba(255,255,255,0.025)}
+tbody tr.low td{background:rgba(239,68,68,0.05)}
+tbody tr.out td{background:rgba(239,68,68,0.1)}
+.cell-input{width:100%;background:transparent;border:1px solid transparent;border-radius:6px;color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;padding:5px 7px;outline:none;transition:.1s}
+.cell-input:hover{border-color:var(--border)}
+.cell-input:focus{border-color:var(--accent);background:var(--surface2)}
+.cell-input.num{width:70px;text-align:center}
+.cell-input.id{width:110px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px}
+select.cell-input{cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2394a3b8' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:22px}
+.stock-badge{display:inline-block;min-width:44px;text-align:center;padding:3px 8px;border-radius:20px;font-weight:700;font-family:'Barlow Condensed',sans-serif;font-size:14px}
+.stock-badge.ok{background:var(--green-bg);color:var(--green)}
+.stock-badge.low{background:var(--orange-bg);color:var(--orange)}
+.stock-badge.out{background:var(--red-bg);color:var(--red)}
+.row-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;border-radius:6px;transition:.1s}
+.row-del:hover{color:var(--red);background:var(--red-bg)}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3)}
+.empty b{color:var(--text2)}
+
+/* TAG in category cell */
+.cat-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border)}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:var(--radius);font-size:14px;font-weight:600;z-index:100;transition:.3s;box-shadow:0 8px 30px rgba(0,0,0,0.5);opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{border-color:var(--red);color:var(--red)}
+.toast.ok{border-color:var(--green)}
+
+/* MODAL for JSON */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:50;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-bg.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);width:100%;max-width:640px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-head h2{font-size:18px;font-weight:900}
+.modal-body{padding:18px;overflow:auto}
+.modal-body p{font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.5}
+.modal textarea{width:100%;height:280px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;padding:12px;outline:none;resize:vertical;line-height:1.5}
+.modal textarea:focus{border-color:var(--border2)}
+.modal-foot{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.close-x{background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;line-height:1}
+.close-x:hover{color:var(--text)}
+
+@media(max-width:640px){
+  .content{padding:.75rem}
+  .header{padding:.85rem 1rem}
+  .filter-count{margin-left:0;width:100%}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">MON <span>CATALOGUE</span></div>
+      <div class="header-sub">Gestion de stock · dernière maj : <span id="updated">—</span></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn green" onclick="addRow()">+ Ligne</button>
+      <button class="btn blue" onclick="openImport()">↧ Importer JSON</button>
+      <button class="btn accent" onclick="openExport()">↥ Exporter JSON</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat accent"><div class="stat-n" id="s-lines">0</div><div class="stat-l">Références</div></div>
+    <div class="stat blue"><div class="stat-n" id="s-qty">0</div><div class="stat-l">Qté totale</div></div>
+    <div class="stat orange"><div class="stat-n" id="s-sold">0</div><div class="stat-l">Vendus</div></div>
+    <div class="stat green"><div class="stat-n" id="s-stock">0</div><div class="stat-l">Stock restant</div></div>
+    <div class="stat red"><div class="stat-n" id="s-out">0</div><div class="stat-l">Ruptures</div></div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="filters">
+    <input class="search" id="f-search" type="text" placeholder="🔍 Recherche libre (nom, identifiant…)" oninput="render()">
+    <select id="f-cat" onchange="onCatFilter()"><option value="">Toutes catégories</option></select>
+    <select id="f-sub" onchange="render()"><option value="">Toutes sous-catégories</option></select>
+    <select id="f-stock" onchange="render()">
+      <option value="">Tout le stock</option>
+      <option value="ok">En stock</option>
+      <option value="low">Stock faible (≤5)</option>
+      <option value="out">Rupture (0)</option>
+    </select>
+    <button class="btn sm" onclick="resetFilters()">Réinitialiser</button>
+    <span class="filter-count" id="f-count"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-sort="categorie">Catégorie<span class="arrow"></span></th>
+          <th data-sort="sousCategorie">Sous-catégorie<span class="arrow"></span></th>
+          <th data-sort="nom">Nom<span class="arrow"></span></th>
+          <th data-sort="identifiant">Identifiant<span class="arrow"></span></th>
+          <th data-sort="quantite">Quantité<span class="arrow"></span></th>
+          <th data-sort="vendu">Vendu<span class="arrow"></span></th>
+          <th data-sort="stock">Stock restant<span class="arrow"></span></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL EXPORT -->
+<div class="modal-bg" id="modal-export">
+  <div class="modal">
+    <div class="modal-head"><h2>Exporter le JSON</h2><button class="close-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <p>Copie ce JSON (ou télécharge-le) et remplace le fichier <b>data.json</b> dans ton dépôt Git. La page rechargera les données partout.</p>
+      <textarea id="export-txt" readonly></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="copyExport()">Copier</button>
+      <button class="btn accent" onclick="downloadJSON()">Télécharger data.json</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL IMPORT -->
+<div class="modal-bg" id="modal-import">
+  <div class="modal">
+    <div class="modal-head"><h2>Importer un JSON</h2><button class="close-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <p>Colle ici le contenu de ton <b>data.json</b>, ou charge un fichier. Cela remplacera les données affichées.</p>
+      <textarea id="import-txt" placeholder='{ "items": [ ... ] }'></textarea>
+    </div>
+    <div class="modal-foot">
+      <label class="btn" style="cursor:pointer">Charger un fichier<input type="file" accept=".json,application/json" style="display:none" onchange="loadFile(event)"></label>
+      <button class="btn green" onclick="doImport()">Importer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ DONNÉES ============ */
+// Format du JSON : { items: [ {categorie, sousCategorie, nom, identifiant, quantite, vendu} ], _updated: ISOdate }
+// Le "stock restant" n'est PAS stocké : il est toujours recalculé (quantite - vendu).
+
+const DEFAULT_DATA = {
+  items: [
+    { categorie:"Lego", sousCategorie:"Ninjago", nom:"Kai",   identifiant:"892511", quantite:40, vendu:1 },
+    { categorie:"Lego", sousCategorie:"Ninjago", nom:"Jay",   identifiant:"892512", quantite:25, vendu:3 },
+    { categorie:"Lego", sousCategorie:"City",    nom:"Pompier", identifiant:"770210", quantite:12, vendu:10 }
+  ],
+  _updated: new Date().toISOString()
+};
+
+let state = { items: [], updated: null };
+let sortKey = null, sortDir = 1;
+
+/* ============ CHARGEMENT ============ */
+// Essaie de charger data.json à côté du HTML (utile quand hébergé sur Git/Pages).
+// En cas d'échec (fichier local, pas de serveur), utilise les données par défaut.
+async function boot(){
+  try{
+    const res = await fetch('data.json', {cache:'no-store'});
+    if(res.ok){
+      const j = await res.json();
+      loadData(j);
+      toast('data.json chargé', 'ok');
+      return;
+    }
+    throw new Error('no file');
+  }catch(e){
+    loadData(DEFAULT_DATA);
+  }
+}
+
+function loadData(j){
+  // Accepte le format {items:[...]} ; migre les identifiants en texte.
+  const items = Array.isArray(j.items) ? j.items : [];
+  state.items = items.map(normalizeItem);
+  state.updated = j._updated || null;
+  buildCatFilters();
+  render();
+  updateStamp();
+}
+
+function normalizeItem(it){
+  return {
+    categorie: String(it.categorie ?? '').trim(),
+    sousCategorie: String(it.sousCategorie ?? '').trim(),
+    nom: String(it.nom ?? '').trim(),
+    identifiant: String(it.identifiant ?? '').trim(),
+    quantite: numOr0(it.quantite),
+    vendu: numOr0(it.vendu)
+  };
+}
+function numOr0(v){ const n = parseInt(v,10); return isNaN(n)||n<0 ? 0 : n; }
+
+/* ============ CATÉGORIES ============ */
+function allCategories(){
+  return [...new Set(state.items.map(i=>i.categorie).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+}
+function allSubs(cat){
+  return [...new Set(state.items.filter(i=>!cat||i.categorie===cat).map(i=>i.sousCategorie).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+}
+
+function buildCatFilters(){
+  const fCat = document.getElementById('f-cat');
+  const cur = fCat.value;
+  fCat.innerHTML = '<option value="">Toutes catégories</option>' + allCategories().map(c=>`<option${c===cur?' selected':''}>${esc(c)}</option>`).join('');
+  buildSubFilter();
+}
+function buildSubFilter(){
+  const fSub = document.getElementById('f-sub');
+  const cur = fSub.value;
+  const cat = document.getElementById('f-cat').value;
+  const subs = allSubs(cat);
+  fSub.innerHTML = '<option value="">Toutes sous-catégories</option>' + subs.map(s=>`<option${s===cur?' selected':''}>${esc(s)}</option>`).join('');
+}
+function onCatFilter(){ buildSubFilter(); render(); }
+
+/* ============ FILTRAGE + TRI ============ */
+function filtered(){
+  const q = document.getElementById('f-search').value.trim().toLowerCase();
+  const cat = document.getElementById('f-cat').value;
+  const sub = document.getElementById('f-sub').value;
+  const st = document.getElementById('f-stock').value;
+
+  let rows = state.items.map((it,idx)=>({...it, _idx:idx, stock:it.quantite-it.vendu}));
+
+  if(q) rows = rows.filter(r =>
+    (r.categorie+' '+r.sousCategorie+' '+r.nom+' '+r.identifiant).toLowerCase().includes(q));
+  if(cat) rows = rows.filter(r=>r.categorie===cat);
+  if(sub) rows = rows.filter(r=>r.sousCategorie===sub);
+  if(st==='ok')  rows = rows.filter(r=>r.stock>5);
+  if(st==='low') rows = rows.filter(r=>r.stock>0 && r.stock<=5);
+  if(st==='out') rows = rows.filter(r=>r.stock<=0);
+
+  if(sortKey){
+    rows.sort((a,b)=>{
+      let x=a[sortKey], y=b[sortKey];
+      if(typeof x==='number'&&typeof y==='number') return (x-y)*sortDir;
+      return String(x).localeCompare(String(y))*sortDir;
+    });
+  }
+  return rows;
+}
+
+/* ============ RENDU ============ */
+function render(){
+  const rows = filtered();
+  const tb = document.getElementById('tbody');
+  const cats = allCategories();
+
+  if(rows.length===0){
+    tb.innerHTML = `<tr><td colspan="8"><div class="empty"><b>Aucune référence</b><br>Ajuste les filtres ou ajoute une ligne.</div></td></tr>`;
+  } else {
+    tb.innerHTML = rows.map(r=>{
+      const stock = r.quantite - r.vendu;
+      const cls = stock<=0 ? 'out' : (stock<=5 ? 'low' : 'ok');
+      const trCls = stock<=0 ? 'out' : (stock<=5 ? 'low' : '');
+      const subs = allSubs(r.categorie);
+      return `<tr class="${trCls}">
+        <td>${catSelect(r._idx, r.categorie, cats)}</td>
+        <td>${subInput(r._idx, r.sousCategorie, subs)}</td>
+        <td><input class="cell-input" value="${esc(r.nom)}" placeholder="Nom…"
+             onchange="edit(${r._idx},'nom',this.value)"></td>
+        <td><input class="cell-input id" value="${esc(r.identifiant)}" placeholder="ID…"
+             onchange="edit(${r._idx},'identifiant',this.value)"></td>
+        <td><input class="cell-input num" type="number" min="0" value="${r.quantite}"
+             onchange="edit(${r._idx},'quantite',this.value)"></td>
+        <td><input class="cell-input num" type="number" min="0" value="${r.vendu}"
+             onchange="edit(${r._idx},'vendu',this.value)"></td>
+        <td><span class="stock-badge ${cls}">${stock}</span></td>
+        <td><button class="row-del" title="Supprimer" onclick="delRow(${r._idx})">×</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  updateSortArrows();
+  updateStats();
+  document.getElementById('f-count').textContent = `${rows.length} / ${state.items.length} référence(s)`;
+}
+
+// Catégorie = liste déroulante des catégories existantes + option "＋ Nouvelle…"
+function catSelect(idx, val, cats){
+  const opts = cats.map(c=>`<option value="${esc(c)}"${c===val?' selected':''}>${esc(c)}</option>`).join('');
+  const hasVal = val && cats.includes(val);
+  const orphan = val && !hasVal ? `<option value="${esc(val)}" selected>${esc(val)}</option>` : '';
+  return `<select class="cell-input" onchange="onCatChange(${idx},this)">
+    ${orphan}${opts}
+    <option value="__NEW__">＋ Nouvelle catégorie…</option>
+  </select>`;
+}
+// Sous-catégorie = champ libre avec autocomplétion (datalist) des sous-cat existantes
+function subInput(idx, val, subs){
+  const listId = 'subs-'+idx;
+  const dl = `<datalist id="${listId}">${subs.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>`;
+  return `<input class="cell-input" list="${listId}" value="${esc(val)}" placeholder="Sous-cat…"
+           onchange="edit(${idx},'sousCategorie',this.value)">${dl}`;
+}
+
+function onCatChange(idx, sel){
+  if(sel.value==='__NEW__'){
+    const name = prompt('Nom de la nouvelle catégorie :');
+    if(name && name.trim()){
+      edit(idx,'categorie',name.trim());   // devient dispo pour toutes les lignes suivantes
+    } else {
+      sel.value = state.items[idx].categorie; // annule
+    }
+    return;
+  }
+  edit(idx,'categorie',sel.value);
+}
+
+/* ============ ÉDITION ============ */
+function edit(idx, field, value){
+  if(field==='quantite'||field==='vendu') value = numOr0(value);
+  else value = String(value).trim();
+  state.items[idx][field] = value;
+  touch();
+  buildCatFilters();   // au cas où une nouvelle catégorie/sous-cat apparaît
+  render();
+}
+
+function addRow(){
+  // Pré-remplit avec la catégorie du filtre actif si présent (confort)
+  const cat = document.getElementById('f-cat').value || '';
+  const sub = document.getElementById('f-sub').value || '';
+  state.items.unshift({ categorie:cat, sousCategorie:sub, nom:'', identifiant:'', quantite:0, vendu:0 });
+  touch();
+  buildCatFilters();
+  render();
+  toast('Ligne ajoutée');
+}
+
+function delRow(idx){
+  const it = state.items[idx];
+  if(!confirm(`Supprimer « ${it.nom||'cette ligne'} » ?`)) return;
+  state.items.splice(idx,1);
+  touch();
+  buildCatFilters();
+  render();
+  toast('Ligne supprimée');
+}
+
+function touch(){ state.updated = new Date().toISOString(); updateStamp(); }
+
+/* ============ TRI (clic entête) ============ */
+document.querySelectorAll('th[data-sort]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const k = th.dataset.sort;
+    if(sortKey===k){ sortDir*=-1; } else { sortKey=k; sortDir=1; }
+    render();
+  });
+});
+function updateSortArrows(){
+  document.querySelectorAll('th[data-sort]').forEach(th=>{
+    const a = th.querySelector('.arrow');
+    if(th.dataset.sort===sortKey){ th.classList.add('sorted'); a.textContent = sortDir>0?'▲':'▼'; }
+    else { th.classList.remove('sorted'); a.textContent=''; }
+  });
+}
+
+/* ============ STATS ============ */
+function updateStats(){
+  const qty  = state.items.reduce((s,i)=>s+i.quantite,0);
+  const sold = state.items.reduce((s,i)=>s+i.vendu,0);
+  const stock= state.items.reduce((s,i)=>s+(i.quantite-i.vendu),0);
+  const out  = state.items.filter(i=>(i.quantite-i.vendu)<=0).length;
+  document.getElementById('s-lines').textContent = state.items.length;
+  document.getElementById('s-qty').textContent   = qty;
+  document.getElementById('s-sold').textContent  = sold;
+  document.getElementById('s-stock').textContent = stock;
+  document.getElementById('s-out').textContent   = out;
+}
+function updateStamp(){
+  const el = document.getElementById('updated');
+  el.textContent = state.updated ? new Date(state.updated).toLocaleString('fr-FR') : '—';
+}
+
+/* ============ IMPORT / EXPORT JSON ============ */
+function buildJSON(){
+  return JSON.stringify({ items: state.items, _updated: state.updated || new Date().toISOString() }, null, 2);
+}
+function openExport(){
+  document.getElementById('export-txt').value = buildJSON();
+  document.getElementById('modal-export').classList.add('show');
+}
+function copyExport(){
+  const t = document.getElementById('export-txt');
+  t.select(); navigator.clipboard.writeText(t.value).then(()=>toast('JSON copié','ok'),()=>toast('Copie impossible','err'));
+}
+function downloadJSON(){
+  const blob = new Blob([buildJSON()],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download='data.json'; a.click();
+  URL.revokeObjectURL(a.href);
+  toast('data.json téléchargé','ok');
+}
+function openImport(){
+  document.getElementById('import-txt').value='';
+  document.getElementById('modal-import').classList.add('show');
+}
+function loadFile(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{ document.getElementById('import-txt').value = r.result; };
+  r.readAsText(f);
+}
+function doImport(){
+  const txt = document.getElementById('import-txt').value.trim();
+  if(!txt){ toast('Rien à importer','err'); return; }
+  try{
+    const j = JSON.parse(txt);
+    if(!Array.isArray(j.items)) throw new Error('Le JSON doit contenir un tableau "items".');
+    loadData(j);
+    closeModal();
+    toast('Import réussi ('+j.items.length+' lignes)','ok');
+  }catch(err){
+    toast('JSON invalide : '+err.message,'err');
+  }
+}
+function closeModal(){ document.querySelectorAll('.modal-bg').forEach(m=>m.classList.remove('show')); }
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) closeModal(); }));
+
+/* ============ DIVERS ============ */
+function resetFilters(){
+  document.getElementById('f-search').value='';
+  document.getElementById('f-cat').value='';
+  buildSubFilter();
+  document.getElementById('f-stock').value='';
+  sortKey=null; sortDir=1;
+  render();
+}
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+let toastTimer;
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+type;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+boot();
+</script>
+</body>
+</html>
