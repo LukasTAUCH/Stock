@@ -1,6 +1,22 @@
 {
   "items": [
     {
+      "categorie": "",
+      "sousCategorie": "Star Wars",
+      "nom": "Palpatine",
+      "identifiant": "00011",
+      "quantite": 2,
+      "vendu": 1
+    },
+    {
+      "categorie": "",
+      "sousCategorie": "Marvel",
+      "nom": "Iron man",
+      "identifiant": "0001",
+      "quantite": 3,
+      "vendu": 1
+    },
+    {
       "categorie": "Lego",
       "sousCategorie": "Ninjago",
       "nom": "Kai",
@@ -25,5 +41,5 @@
       "vendu": 10
     }
   ],
-  "_updated": "2026-07-19T00:00:00.000Z"
+  "_updated": "2026-07-19T16:44:57.713Z"
 }
