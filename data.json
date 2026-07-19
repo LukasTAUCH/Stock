@@ -3,6 +3,22 @@
     {
       "categorie": "",
       "sousCategorie": "Marvel",
+      "nom": "batman",
+      "identifiant": "0011LD",
+      "quantite": 3,
+      "vendu": 2
+    },
+    {
+      "categorie": "",
+      "sousCategorie": "Star Wars",
+      "nom": "Palpatine",
+      "identifiant": "00011",
+      "quantite": 2,
+      "vendu": 1
+    },
+    {
+      "categorie": "",
+      "sousCategorie": "Marvel",
       "nom": "Iron man",
       "identifiant": "0001",
       "quantite": 3,
@@ -33,5 +49,5 @@
       "vendu": 10
     }
   ],
-  "_updated": "2026-07-19T16:44:57.713Z"
+  "_updated": "2026-07-19T16:56:50.722Z"
 }
