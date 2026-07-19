@@ -2,14 +2,6 @@
   "items": [
     {
       "categorie": "",
-      "sousCategorie": "Star Wars",
-      "nom": "Palpatine",
-      "identifiant": "00011",
-      "quantite": 2,
-      "vendu": 1
-    },
-    {
-      "categorie": "",
       "sousCategorie": "Marvel",
       "nom": "Iron man",
       "identifiant": "0001",
